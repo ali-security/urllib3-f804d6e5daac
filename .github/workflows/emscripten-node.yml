@@ -1,6 +1,7 @@
 name: Emscripten (Node.js)
 
-on: [workflow_dispatch]
+on:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -15,30 +16,30 @@ jobs:
     # test/contrib/emscripten actually execute: they are module-level skipped
     # in the regular test matrix because pytest_pyodide isn't installed there.
     runs-on: ubuntu-latest
-    name: "Emscripten Node.js redirect tests"
+    name: Emscripten Node.js redirect tests
     timeout-minutes: 30
     steps:
-      - name: "Checkout repository"
+      - name: Checkout repository
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
         with:
           fetch-depth: 0 # Needed to fetch the version from git
           persist-credentials: false
 
-      - name: "Setup Python 3.12"
+      - name: Setup Python 3.12
         uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
         with:
-          python-version: "3.12"
+          python-version: '3.12'
 
-      - name: "Constrain Flask/Werkzeug for the dummyserver stack"
+      - name: Constrain Flask/Werkzeug for the dummyserver stack
         run: |
           echo "Flask<3.1" > ci-constraints.txt
           echo "Werkzeug<3.1" >> ci-constraints.txt
           echo "PIP_CONSTRAINT=${{ github.workspace }}/ci-constraints.txt" >> $GITHUB_ENV
 
-      - name: "Install dependencies"
+      - name: Install dependencies
         run: python -m pip install --upgrade pip setuptools nox
 
-      - name: "Install node.js"
+      - name: Install node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -50,5 +51,5 @@ jobs:
           # noxfile.py contains the Pyodide version used currently.
           key: pyodide-downloads-${{ hashFiles('noxfile.py') }}
 
-      - name: "Run redirect tests under Pyodide on Node.js"
+      - name: Run redirect tests under Pyodide on Node.js
         run: nox -s "emscripten(node)" -- -k "redirect"
