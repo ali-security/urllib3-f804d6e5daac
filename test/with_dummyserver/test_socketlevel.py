@@ -1231,8 +1231,12 @@ class TestProxyManager(SocketDummyServerTestCase):
                 proxy.request("GET", "https://localhost/")
 
         done_receiving.wait()
-        assert b"http/1.1" in self.buf
-        assert b"h2" not in self.buf
+        assert b"\x08http/1.1" in self.buf
+        # ALPN protocol names are length-prefixed, so an advertised "h2"
+        # is sent as b"\x02h2". A bare b"h2" also matches the random
+        # bytes of the TLS handshake (client random, session ID, key
+        # share) from time to time, which made this test flaky.
+        assert b"\x02h2" not in self.buf
 
     def test_connect_reconn(self) -> None:
         def proxy_ssl_one(listener: socket.socket) -> None:
